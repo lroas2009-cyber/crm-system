@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#f5f6f8;--s0:#fff;--s1:#f9fafb;--s2:#f3f4f6;
+--b0:#e5e7eb;--b1:#d1d5db;
+--t0:#111827;--t1:#374151;--t2:#6b7280;--t3:#9ca3af;
+--acc:#0073ea;--acc2:#0060c9;--acc-bg:#e8f0fe;
+--gr-bg:#e3faf0;--gr-b:#b0edd5;
+--rd:#e44258;--rd-bg:#fde8eb;--rd-b:#f9b8c2;
+--cy-bg:#e0f3fc;--cy-b:#9dd8f5;
+--am:#d97706;
+}
+html,body{background:var(--bg);color:var(--t0);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;font-size:13px;min-height:100vh}
+.header{display:flex;align-items:center;gap:12px;padding:0 20px;height:52px;background:var(--s0);border-bottom:1px solid var(--b0);position:sticky;top:0;z-index:50}
+.wordmark{font-size:15px;font-weight:700;letter-spacing:-.3px;color:var(--t0)}
+.wordmark span{color:var(--acc)}
+.hdiv{width:1px;height:18px;background:var(--b0)}
+.hpage{font-size:12px;color:var(--t2)}
+.spacer{flex:1}
+.kpi-bar{display:flex;gap:2px}
+.kchip{padding:3px 9px;border-radius:4px;font-size:11px;color:var(--t2);background:var(--s2);border:1px solid var(--b0)}
+.kchip b{color:var(--t0);font-weight:600;margin-right:2px}
+.hbtn{padding:5px 12px;border-radius:5px;border:1px solid var(--b0);background:var(--s0);color:var(--t1);cursor:pointer;font-size:12px;font-weight:500;transition:all .1s}
+.hbtn:hover{background:var(--s2);border-color:var(--b1)}
+.hbtn.acc{background:var(--acc);border-color:var(--acc);color:#fff}
+.hbtn.acc:hover{background:var(--acc2)}
+.body{padding:16px 20px}
+.new-group-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--s0);border:1px solid var(--b0);border-radius:8px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-wrap:wrap}
+.new-group-bar label{font-size:11px;color:var(--t2);white-space:nowrap;font-weight:500}
+.new-group-bar input[type=date],.new-group-bar input[type=text]{padding:5px 10px;border-radius:5px;border:1px solid var(--b1);background:var(--s0);color:var(--t0);font-family:inherit;font-size:12px;outline:none}
+.new-group-bar input[type=date]:focus,.new-group-bar input[type=text]:focus{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-bg)}
+.new-group-bar input[type=text]{flex:1;min-width:120px;max-width:200px}
+.new-group-bar input[type=text]::placeholder{color:var(--t3)}
+.group{margin-bottom:12px;border:1px solid var(--b0);border-radius:8px;overflow:visible;background:var(--s0);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ghdr{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none;transition:background .1s;border-radius:8px 8px 0 0}
+.ghdr:hover{background:var(--s1)}
+.group.closed .ghdr{border-radius:8px}
+.gstripe{width:4px;height:16px;border-radius:2px;flex-shrink:0}
+.gchev{font-size:9px;color:var(--t3);transition:transform .18s;display:inline-block;margin-right:2px}
+.gchev.open{transform:rotate(90deg)}
+.gname{font-size:12px;font-weight:700;color:var(--t0);flex:1}
+.gpill{background:var(--s2);border:1px solid var(--b0);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--t2);font-weight:500}
+.gcaps{font-size:10px;color:var(--t2)}
+.gcaps b{color:var(--am);font-weight:700}
+.gacts{display:flex;gap:2px;margin-left:4px}
+.gact{background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--t2);padding:3px 7px;border-radius:4px;transition:all .1s;font-family:inherit}
+.gact:hover{background:var(--s2);color:var(--t0)}
+.gact.del:hover{color:var(--rd);background:var(--rd-bg)}
+.today-badge{font-size:10px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px;font-weight:600}
+.twrap{overflow-x:auto;border-top:1px solid var(--b0)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+col.c0{width:152px}col.c1{width:126px}col.c2{width:56px}col.c3{width:56px}
+col.c4{width:86px}col.c5{width:42px}col.c6{width:96px}col.c7{width:112px}
+col.c8{width:74px}col.c9{width:60px}col.c10{width:52px}col.c11{width:98px}col.c12{width:30px}
+th{background:var(--s1);padding:6px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--t3);border-bottom:1px solid var(--b0);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--b0);transition:background .08s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover td{background:#f0f4ff}
+tbody td{height:36px;padding:0;vertical-align:middle;background:transparent}
+input.ci{width:100%;height:36px;background:transparent;border:none;padding:0 10px;font-size:12px;color:var(--t0);font-family:inherit;outline:none}
+input.ci:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--acc);border-radius:2px;position:relative;z-index:1}
+input.ci::placeholder{color:var(--t3)}
+input.ci[type=number]{text-align:center}
+.gcell{position:relative}
+input.geoI{width:100%;height:36px;background:transparent;border:none;padding:0 10px;font-size:12px;color:var(--t0);font-family:inherit;outline:none}
+input.geoI:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--acc);border-radius:2px}
+input.geoI::placeholder{color:var(--t3)}
+.geodd{position:absolute;top:calc(100% + 2px);left:0;min-width:168px;background:var(--s0);border:1px solid var(--b1);border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;display:none;overflow:hidden}
+.gopt{padding:7px 11px;font-size:12px;color:var(--t1);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .08s}
+.gopt:hover{background:var(--acc-bg);color:var(--acc)}
+.sttd{padding:2px 6px}
+.st{height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;padding:0 8px;white-space:nowrap;transition:filter .1s;letter-spacing:.1px}
+.st:hover{filter:brightness(.94)}
+.s-sent{background:var(--gr-bg);color:#00875c;border:1px solid var(--gr-b)}
+.s-nothing{background:var(--rd-bg);color:#c0304a;border:1px solid var(--rd-b)}
+.s-done{background:var(--cy-bg);color:#0077b3;border:1px solid var(--cy-b)}
+.s-empty{background:var(--s2);color:var(--t3);border:1px solid var(--b0)}
+.aptd{padding:2px 6px}
+.ap{height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;padding:0 8px;transition:filter .1s}
+.ap:hover{filter:brightness(.94)}
+.ap-done{background:var(--cy-bg);color:#0077b3;border:1px solid var(--cy-b)}
+.ap-empty{background:var(--s2);color:var(--t3);border:1px solid var(--b0)}
+.ppltd{display:flex;align-items:center;justify-content:center;height:36px}
+.av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#0073ea,#7e5bef);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.avmt{width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--b1);cursor:pointer;transition:border-color .1s}
+.avmt:hover{border-color:var(--acc)}
+.delbtn{background:transparent;border:none;cursor:pointer;color:transparent;font-size:11px;width:30px;height:36px;display:flex;align-items:center;justify-content:center;transition:color .1s}
+tbody tr:hover .delbtn{color:var(--t3)}
+.delbtn:hover{color:var(--rd)!important}
+.addrow{display:flex;align-items:center;gap:6px;padding:7px 12px;color:var(--t3);cursor:pointer;font-size:11px;border-top:1px solid var(--b0);transition:all .1s;border-radius:0 0 8px 8px}
+.addrow:hover{background:var(--s1);color:var(--acc)}
+.addrow svg{width:11px;height:11px;flex-shrink:0}
+.footrow td{background:var(--s1);padding:5px 10px;font-size:10px;color:var(--t2);font-weight:500;border-top:1px solid var(--b0)}
+.footval{color:var(--am);font-weight:700;font-size:11px;text-align:center}
+.ctxmenu{position:fixed;background:var(--s0);border:1px solid var(--b1);border-radius:7px;overflow:hidden;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:999}
+.cxi{padding:7px 13px;font-size:12px;color:var(--t1);cursor:pointer;transition:background .08s}
+.cxi:hover{background:var(--s2)}
+.cxsep{height:1px;background:var(--b0);margin:2px 0}
+.cxi.danger{color:var(--rd)}
+.cxi.danger:hover{background:var(--rd-bg)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="wordmark">Sales<span>CRM</span></div>
+    <div class="hdiv"></div>
+    <div class="hpage" id="hpage">—</div>
+    <div class="spacer"></div>
+    <div class="kpi-bar" id="kpi"></div>
+    <div class="hdiv"></div>
+    <button class="hbtn" onclick="exportCSV()">Export CSV</button>
+  </div>
+  <div class="body" id="root"></div>
+</div>
+<script>
+const SK='crm_dates_v1';
+let db=[];
+const GEOS=[
+  {n:'France',f:'🇫🇷'},{n:'Germany',f:'🇩🇪'},{n:'Italy',f:'🇮🇹'},{n:'Spain',f:'🇪🇸'},
+  {n:'Belgium',f:'🇧🇪'},{n:'Netherlands',f:'🇳🇱'},{n:'Ireland',f:'🇮🇪'},{n:'UK',f:'🇬🇧'},
+  {n:'USA',f:'🇺🇸'},{n:'Canada',f:'🇨🇦'},{n:'Australia',f:'🇦🇺'},{n:'India',f:'🇮🇳'},
+  {n:'Indonesia',f:'🇮🇩'},{n:'Brazil',f:'🇧🇷'},{n:'Israel',f:'🇮🇱'},{n:'Japan',f:'🇯🇵'},
+  {n:'South Korea',f:'🇰🇷'},{n:'Mexico',f:'🇲🇽'},{n:'Poland',f:'🇵🇱'},{n:'Sweden',f:'🇸🇪'}
+];
+const COLORS=['#0073ea','#00c875','#f5a623','#e44258','#0099df','#7e5bef','#ff7575','#00b8d4'];
+const STC=['','order sent','Nothing in','Done'];
+function uid(){return Math.random().toString(36).slice(2,8)}
+function newRow(){return{id:uid(),item:'',geos:'',caps:'',src:'',wh:'',fit:'',deal:'',status:'',req:'',pri:'',ppl:'',appr:''}}
+function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getFullYear()).slice(2)}
+function dateInputVal(){return new Date().toISOString().slice(0,10)}
+function formatDateLabel(iso){if(!iso)return'';if(iso.match(/^\d{4}-\d{2}-\d{2}$/)){const[y,m,d]=iso.split('-');return d+'.'+m+'.'+y.slice(2)}return iso}
+function isToday(label){return label===todayStr()||label.endsWith('— '+todayStr())}
+function load(){try{const s=localStorage.getItem(SK);db=s?JSON.parse(s):initDB()}catch(e){db=initDB()}}
+function initDB(){
+  const t=new Date(),y=new Date(t);y.setDate(t.getDate()-1);
+  const fmt=d=>String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getFullYear()).slice(2);
+  return[{id:uid(),name:fmt(t),color:COLORS[0],open:true,rows:[]},{id:uid(),name:fmt(y),color:COLORS[1],open:true,rows:[]}]
+}
+function save(){try{localStorage.setItem(SK,JSON.stringify(db))}catch(e){}}
+function geoDisp(raw){if(!raw)return'';const g=GEOS.find(x=>x.n.toLowerCase()===raw.toLowerCase());return g?g.f+' '+raw:raw}
+function stCls(s){if(s==='order sent')return's-sent';if(s==='Nothing in')return's-nothing';if(s==='Done')return's-done';return's-empty'}
+function cycleStatus(gi,ri){const r=db[gi].rows[ri];r.status=STC[(STC.indexOf(r.status)+1)%STC.length];save();rg(gi);updateKPI()}
+function cycleAppr(gi,ri){const r=db[gi].rows[ri];r.appr=r.appr==='Done'?'':'Done';save();rg(gi)}
+function upd(gi,ri,f,v){db[gi].rows[ri][f]=v;save();if(f==='caps')updateKPI()}
+function xe(v){return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function xa(v){return String(v||'').replace(/"/g,'&quot;')}
+function updateKPI(){
+  const total=db.reduce((a,g)=>a+g.rows.length,0);
+  const sent=db.reduce((a,g)=>a+g.rows.filter(r=>r.status==='order sent').length,0);
+  const done=db.reduce((a,g)=>a+g.rows.filter(r=>r.status==='Done').length,0);
+  const caps=db.reduce((a,g)=>a+g.rows.reduce((b,r)=>b+(parseInt(r.caps)||0),0),0);
+  const pg=document.getElementById('hpage');if(pg)pg.textContent=db.length+' groups';
+  const kpi=document.getElementById('kpi');
+  if(kpi)kpi.innerHTML=`<div class="kchip"><b>${total}</b>rows</div><div class="kchip"><b>${sent}</b>sent</div><div class="kchip"><b>${done}</b>done</div>`+(caps?`<div class="kchip"><b>${caps}</b>caps</div>`:'');
+}
+function render(){
+  const root=document.getElementById('root');root.innerHTML='';
+  const bar=document.createElement('div');bar.className='new-group-bar';
+  bar.innerHTML=`<label>+ קבוצה חדשה:</label>
+    <input type="date" id="new-date" value="${dateInputVal()}"/>
+    <input type="text" id="new-label" placeholder="שם נוסף (אופציונלי)"/>
+    <button class="hbtn acc" onclick="addGroupFromBar()">צור קבוצה</button>`;
+  root.appendChild(bar);
+  db.forEach((_,gi)=>{const d=document.createElement('div');d.className='group';d.id='g'+gi;root.appendChild(d);rg(gi)});
+  updateKPI();
+}
+function rg(gi){
+  const g=db[gi];const el=document.getElementById('g'+gi);if(!el)return;
+  const caps=g.rows.reduce((a,r)=>a+(parseInt(r.caps)||0),0);
+  el.className='group'+(g.open?'':' closed');
+  const today=isToday(g.name);
+  let h=`<div class="ghdr" onclick="toggle(${gi})">
+    <span class="gchev ${g.open?'open':''}">▶</span>
+    <span class="gstripe" style="background:${g.color}"></span>
+    <span class="gname">${xe(g.name)}</span>
+    ${today?'<span class="today-badge">Today</span>':''}
+    <span class="gpill">${g.rows.length}</span>
+    ${caps?`<span class="gcaps">caps <b>${caps}</b></span>`:''}
+    <div class="gacts" onclick="event.stopPropagation()">
+      <button class="gact" onclick="addRow(${gi})">+ item</button>
+      <button class="gact del" onclick="delGroup(${gi})">Delete</button>
+    </div>
+  </div>`;
+  if(g.open){
+    h+=`<div class="twrap"><table>
+      <colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8"><col class="c9"><col class="c10"><col class="c11"><col class="c12"></colgroup>
+      <thead><tr><th>Item</th><th>Geos</th><th>Caps</th><th>Source</th><th>Hrs</th><th>Fit</th><th>Deal</th><th>Status</th><th>Requests</th><th>Priority</th><th>Ppl</th><th>Approve</th><th></th></tr></thead>
+      <tbody id="tb${gi}">`;
+    g.rows.forEach((r,ri)=>{h+=rowH(gi,ri,r)});
+    h+=`</tbody><tfoot><tr class="footrow"><td>Total</td><td></td><td class="footval">${caps||''}</td><td colspan="10"></td></tr></tfoot></table></div>
+    <div class="addrow" onclick="addRow(${gi})"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>Add item</div>`;
+  }
+  el.innerHTML=h;
+}
+function rowH(gi,ri,r){
+  const gd=geoDisp(r.geos);const sc=stCls(r.status);const ac=r.appr==='Done'?'ap-done':'ap-empty';
+  return`<tr oncontextmenu="showCtx(event,${gi},${ri})">
+    <td><input class="ci" value="${xa(r.item)}" oninput="upd(${gi},${ri},'item',this.value)" placeholder="Item name" onkeydown="nav(event,${gi},${ri},0)"/></td>
+    <td class="gcell"><input class="geoI" id="gi${gi}_${ri}" value="${xa(gd)}" oninput="onGI(event,${gi},${ri})" onfocus="openDD(${gi},${ri})" onblur="closeDD(${gi},${ri})" placeholder="Country" onkeydown="nav(event,${gi},${ri},1)"/><div class="geodd" id="dd${gi}_${ri}"></div></td>
+    <td><input class="ci" value="${xa(r.caps)}" oninput="upd(${gi},${ri},'caps',this.value)" type="number" placeholder="—" onkeydown="nav(event,${gi},${ri},2)"/></td>
+    <td><input class="ci" value="${xa(r.src)}" oninput="upd(${gi},${ri},'src',this.value)" type="number" placeholder="—" onkeydown="nav(event,${gi},${ri},3)"/></td>
+    <td><input class="ci" value="${xa(r.wh)}" oninput="upd(${gi},${ri},'wh',this.value)" placeholder="10-18" onkeydown="nav(event,${gi},${ri},4)"/></td>
+    <td><input class="ci" value="${xa(r.fit)}" oninput="upd(${gi},${ri},'fit',this.value)" onkeydown="nav(event,${gi},${ri},5)"/></td>
+    <td><input class="ci" value="${xa(r.deal)}" oninput="upd(${gi},${ri},'deal',this.value)" placeholder="1300-11" onkeydown="nav(event,${gi},${ri},6)"/></td>
+    <td class="sttd"><div class="st ${sc}" onclick="cycleStatus(${gi},${ri})">${r.status||'—'}</div></td>
+    <td><input class="ci" value="${xa(r.req)}" oninput="upd(${gi},${ri},'req',this.value)" onkeydown="nav(event,${gi},${ri},8)"/></td>
+    <td><input class="ci" value="${xa(r.pri)}" oninput="upd(${gi},${ri},'pri',this.value)" onkeydown="nav(event,${gi},${ri},9)"/></td>
+    <td class="ppltd">${r.ppl?`<div class="av" onclick="editPpl(${gi},${ri})">${r.ppl.slice(0,2).toUpperCase()}</div>`:`<div class="avmt" onclick="editPpl(${gi},${ri})"></div>`}</td>
+    <td class="aptd"><div class="ap ${ac}" onclick="cycleAppr(${gi},${ri})">${r.appr||'—'}</div></td>
+    <td><button class="delbtn" onclick="delRow(${gi},${ri})">✕</button></td>
+  </tr>`;
+}
+const IC=[0,1,2,3,4,5,6,8,9];
+function nav(e,gi,ri,col){
+  if(e.key==='Tab'){e.preventDefault();const ci=IC.indexOf(col),nx=IC[ci+1];nx!=null?focusCell(gi,ri,nx):ri<db[gi].rows.length-1?focusCell(gi,ri+1,0):addRow(gi,true)}
+  if(e.key==='Enter'){ri<db[gi].rows.length-1?focusCell(gi,ri+1,col):addRow(gi,true)}
+  if(e.key==='ArrowDown'&&ri<db[gi].rows.length-1){e.preventDefault();focusCell(gi,ri+1,col)}
+  if(e.key==='ArrowUp'&&ri>0){e.preventDefault();focusCell(gi,ri-1,col)}
+  if(e.key==='Escape')e.target.blur()
+}
+function focusCell(gi,ri,col){const idx=IC.indexOf(col)>=0?IC.indexOf(col):0;setTimeout(()=>{const rows=document.querySelectorAll('#tb'+gi+' tr');if(rows[ri]){const ins=rows[ri].querySelectorAll('input');if(ins[idx])ins[idx].focus()}},20)}
+function addGroupFromBar(){
+  const dateEl=document.getElementById('new-date');const labelEl=document.getElementById('new-label');
+  if(!dateEl||!dateEl.value)return;
+  const label=labelEl&&labelEl.value.trim();
+  const name=label?label+' — '+formatDateLabel(dateEl.value):formatDateLabel(dateEl.value);
+  if(db.find(g=>g.name===name)){alert('קבוצה עם שם זה כבר קיימת');return}
+  db.unshift({id:uid(),name,color:COLORS[db.length%COLORS.length],open:true,rows:[]});
+  save();render();
+  setTimeout(()=>{const el=document.getElementById('g0');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},80);
+}
+function addRow(gi,focusIt){
+  db[gi].rows.push(newRow());save();rg(gi);updateKPI();
+  if(focusIt!==false)setTimeout(()=>{const rows=document.querySelectorAll('#tb'+gi+' tr');const last=rows[rows.length-1];if(last){const i=last.querySelector('input');if(i)i.focus()}},40)
+}
+function delRow(gi,ri){db[gi].rows.splice(ri,1);save();rg(gi);updateKPI()}
+function toggle(gi){db[gi].open=!db[gi].open;save();rg(gi)}
+function delGroup(gi){if(db[gi].rows.length&&!confirm('Delete "'+db[gi].name+'"?'))return;db.splice(gi,1);save();render()}
+function editPpl(gi,ri){const v=prompt('Initials:',db[gi].rows[ri].ppl||'');if(v===null)return;db[gi].rows[ri].ppl=v.trim().slice(0,2);save();rg(gi)}
+function onGI(e,gi,ri){
+  const v=e.target.value;const raw=v.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*/,'').trim();
+  db[gi].rows[ri].geos=raw;save();
+  const dd=document.getElementById('dd'+gi+'_'+ri);if(!dd)return;
+  const q=raw.toLowerCase();const m=q?GEOS.filter(g=>g.n.toLowerCase().includes(q)):GEOS;
+  dd.innerHTML=m.slice(0,8).map(g=>`<div class="gopt" onmousedown="pickGeo(event,${gi},${ri},'${g.n}')">${g.f} ${g.n}</div>`).join('');
+  dd.style.display=m.length?'block':'none'
+}
+function openDD(gi,ri){const dd=document.getElementById('dd'+gi+'_'+ri);if(!dd)return;dd.innerHTML=GEOS.map(g=>`<div class="gopt" onmousedown="pickGeo(event,${gi},${ri},'${g.n}')">${g.f} ${g.n}</div>`).join('');dd.style.display='block'}
+function closeDD(gi,ri){setTimeout(()=>{const d=document.getElementById('dd'+gi+'_'+ri);if(d)d.style.display='none'},160)}
+function pickGeo(ev,gi,ri,name){ev.preventDefault();const g=GEOS.find(x=>x.n===name);const inp=document.getElementById('gi'+gi+'_'+ri);if(inp)inp.value=(g?g.f+' ':'')+name;db[gi].rows[ri].geos=name;save();const dd=document.getElementById('dd'+gi+'_'+ri);if(dd)dd.style.display='none'}
+function showCtx(e,gi,ri){
+  e.preventDefault();closeCtx();
+  const m=document.createElement('div');m.className='ctxmenu';m.id='ctx';m.style.cssText='top:'+e.clientY+'px;left:'+e.clientX+'px';
+  m.innerHTML=`<div class="cxi" onmousedown="insertAt(${gi},${ri});closeCtx()">Insert above</div><div class="cxi" onmousedown="insertAt(${gi},${ri+1});closeCtx()">Insert below</div><div class="cxi" onmousedown="dupRow(${gi},${ri});closeCtx()">Duplicate</div><div class="cxsep"></div><div class="cxi danger" onmousedown="delRow(${gi},${ri});closeCtx()">Delete row</div>`;
+  document.body.appendChild(m);setTimeout(()=>document.addEventListener('click',closeCtx,{once:true}),10)
+}
+function closeCtx(){const m=document.getElementById('ctx');if(m)m.remove()}
+function insertAt(gi,ri){db[gi].rows.splice(ri,0,newRow());save();rg(gi);updateKPI()}
+function dupRow(gi,ri){db[gi].rows.splice(ri+1,0,{...db[gi].rows[ri],id:uid()});save();rg(gi);updateKPI()}
+function exportCSV(){
+  const cols=['item','geos','caps','src','wh','fit','deal','status','req','pri','ppl','appr'];
+  let csv='Group,Item,Geos,Caps,Source,Working Hours,Fit,Deal,Status,Requests,Priority,People,Approve\n';
+  db.forEach(g=>g.rows.forEach(r=>{csv+='"'+g.name+'",'+cols.map(c=>'"'+(r[c]||'')+'"').join(',')+'\n'}));
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='crm.csv';a.click()
+}
+load();render();
+</script>
+</body>
+</html>
