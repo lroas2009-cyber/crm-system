@@ -30,6 +30,11 @@ html,body{background:var(--bg);color:var(--t0);font-family:-apple-system,BlinkMa
 .hbtn:hover{background:var(--s2);border-color:var(--b1)}
 .hbtn.acc{background:var(--acc);border-color:var(--acc);color:#fff}
 .hbtn.acc:hover{background:var(--acc2)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:#00c875}
+.sync-dot.err{background:#e44258}
+.sync-dot.loading{background:#f5a623;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .body{padding:16px 20px}
 .new-group-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--s0);border:1px solid var(--b0);border-radius:8px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-wrap:wrap}
 .new-group-bar label{font-size:11px;color:var(--t2);white-space:nowrap;font-weight:500}
@@ -115,13 +120,65 @@ tbody tr:hover .delbtn{color:var(--t3)}
     <div class="spacer"></div>
     <div class="kpi-bar" id="kpi"></div>
     <div class="hdiv"></div>
+    <div class="sync-dot loading" id="syncDot" title="מתחבר..."></div>
     <button class="hbtn" onclick="exportCSV()">Export CSV</button>
   </div>
   <div class="body" id="root"></div>
 </div>
-<script>
-const SK='crm_dates_v1';
-let db=[];
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCgfjQZsHRL0_0W3yYD8byL8Srlwj8NA8k",
+  authDomain: "crm-system-259f9.firebaseapp.com",
+  projectId: "crm-system-259f9",
+  storageBucket: "crm-system-259f9.firebasestorage.app",
+  messagingSenderId: "569693056984",
+  appId: "1:569693056984:web:3a59bd53981d9f6afc4cad",
+  measurementId: "G-385SV97CH6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db_fire = getFirestore(app);
+const CRM_DOC = doc(db_fire, "crm", "main");
+
+const syncDot = document.getElementById('syncDot');
+let saveTimeout = null;
+let ignoreNext = false;
+
+// ── Listen for remote changes ──
+onSnapshot(CRM_DOC, (snap) => {
+  if (snap.exists()) {
+    const data = snap.data();
+    if (ignoreNext) { ignoreNext = false; return; }
+    db = data.groups || [];
+    render();
+    syncDot.className = 'sync-dot ok';
+  } else {
+    syncDot.className = 'sync-dot ok';
+  }
+}, () => { syncDot.className = 'sync-dot err'; });
+
+// ── Save to Firestore (debounced) ──
+function save() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  syncDot.className = 'sync-dot loading';
+  saveTimeout = setTimeout(async () => {
+    try {
+      ignoreNext = true;
+      await setDoc(CRM_DOC, { groups: db });
+      syncDot.className = 'sync-dot ok';
+    } catch(e) {
+      syncDot.className = 'sync-dot err';
+      console.error(e);
+    }
+  }, 600);
+}
+
+// ── CRM Logic ──
+let db = [];
 const GEOS=[
   {n:'France',f:'🇫🇷'},{n:'Germany',f:'🇩🇪'},{n:'Italy',f:'🇮🇹'},{n:'Spain',f:'🇪🇸'},
   {n:'Belgium',f:'🇧🇪'},{n:'Netherlands',f:'🇳🇱'},{n:'Ireland',f:'🇮🇪'},{n:'UK',f:'🇬🇧'},
@@ -137,13 +194,6 @@ function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0'
 function dateInputVal(){return new Date().toISOString().slice(0,10)}
 function formatDateLabel(iso){if(!iso)return'';if(iso.match(/^\d{4}-\d{2}-\d{2}$/)){const[y,m,d]=iso.split('-');return d+'.'+m+'.'+y.slice(2)}return iso}
 function isToday(label){return label===todayStr()||label.endsWith('— '+todayStr())}
-function load(){try{const s=localStorage.getItem(SK);db=s?JSON.parse(s):initDB()}catch(e){db=initDB()}}
-function initDB(){
-  const t=new Date(),y=new Date(t);y.setDate(t.getDate()-1);
-  const fmt=d=>String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getFullYear()).slice(2);
-  return[{id:uid(),name:fmt(t),color:COLORS[0],open:true,rows:[]},{id:uid(),name:fmt(y),color:COLORS[1],open:true,rows:[]}]
-}
-function save(){try{localStorage.setItem(SK,JSON.stringify(db))}catch(e){}}
 function geoDisp(raw){if(!raw)return'';const g=GEOS.find(x=>x.n.toLowerCase()===raw.toLowerCase());return g?g.f+' '+raw:raw}
 function stCls(s){if(s==='order sent')return's-sent';if(s==='Nothing in')return's-nothing';if(s==='Done')return's-done';return's-empty'}
 function cycleStatus(gi,ri){const r=db[gi].rows[ri];r.status=STC[(STC.indexOf(r.status)+1)%STC.length];save();rg(gi);updateKPI()}
@@ -270,7 +320,16 @@ function exportCSV(){
   db.forEach(g=>g.rows.forEach(r=>{csv+='"'+g.name+'",'+cols.map(c=>'"'+(r[c]||'')+'"').join(',')+'\n'}));
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='crm.csv';a.click()
 }
-load();render();
+
+// expose functions to global scope for inline onclick handlers
+window.toggle=toggle;window.addRow=addRow;window.delRow=delRow;window.delGroup=delGroup;
+window.cycleStatus=cycleStatus;window.cycleAppr=cycleAppr;window.upd=upd;
+window.editPpl=editPpl;window.onGI=onGI;window.openDD=openDD;window.closeDD=closeDD;
+window.pickGeo=pickGeo;window.showCtx=showCtx;window.closeCtx=closeCtx;
+window.insertAt=insertAt;window.dupRow=dupRow;window.exportCSV=exportCSV;
+window.addGroupFromBar=addGroupFromBar;window.nav=nav;
+
+render();
 </script>
 </body>
 </html>
