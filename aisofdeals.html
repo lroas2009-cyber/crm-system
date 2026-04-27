@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales CRM</title>
+<style>
+#lockScreen{position:fixed;inset:0;background:linear-gradient(135deg,#1d2b4f,#0073ea);display:flex;align-items:center;justify-content:center;z-index:9999}
+#lockBox{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+#lockBox h2{font-size:20px;font-weight:700;color:#111827;margin-bottom:6px}
+#lockBox p{font-size:13px;color:#6b7280;margin-bottom:24px}
+#lockPass{width:100%;padding:12px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;margin-bottom:12px;text-align:center;letter-spacing:2px}
+#lockPass:focus{border-color:#0073ea;box-shadow:0 0 0 3px #e8f0fe}
+#lockBtn{width:100%;padding:12px;background:#0073ea;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+#lockBtn:hover{background:#0060c9}
+#lockErr{color:#e44258;font-size:12px;margin-top:8px;min-height:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#f5f6f8;--s0:#fff;--s1:#f9fafb;--s2:#f3f4f6;
+--b0:#e5e7eb;--b1:#d1d5db;
+--t0:#111827;--t1:#374151;--t2:#6b7280;--t3:#9ca3af;
+--acc:#0073ea;--acc2:#0060c9;--acc-bg:#e8f0fe;
+--gr-bg:#e3faf0;--gr-b:#b0edd5;
+--rd:#e44258;--rd-bg:#fde8eb;--rd-b:#f9b8c2;
+--cy-bg:#e0f3fc;--cy-b:#9dd8f5;
+--am:#d97706;
+}
+html,body{background:var(--bg);color:var(--t0);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;font-size:13px;min-height:100vh}
+.header{display:flex;align-items:center;gap:12px;padding:0 20px;height:52px;background:var(--s0);border-bottom:1px solid var(--b0);position:sticky;top:0;z-index:50}
+.wordmark{font-size:15px;font-weight:700;letter-spacing:-.3px;color:var(--t0)}
+.wordmark span{color:var(--acc)}
+.hdiv{width:1px;height:18px;background:var(--b0)}
+.hpage{font-size:12px;color:var(--t2)}
+.spacer{flex:1}
+.kpi-bar{display:flex;gap:2px}
+.kchip{padding:3px 9px;border-radius:4px;font-size:11px;color:var(--t2);background:var(--s2);border:1px solid var(--b0)}
+.kchip b{color:var(--t0);font-weight:600;margin-right:2px}
+.hbtn{padding:5px 12px;border-radius:5px;border:1px solid var(--b0);background:var(--s0);color:var(--t1);cursor:pointer;font-size:12px;font-weight:500;transition:all .1s}
+.hbtn:hover{background:var(--s2);border-color:var(--b1)}
+.hbtn.acc{background:var(--acc);border-color:var(--acc);color:#fff}
+.hbtn.acc:hover{background:var(--acc2)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:#00c875}
+.sync-dot.err{background:#e44258}
+.sync-dot.loading{background:#f5a623;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* TABS */
+.tabs{display:flex;gap:2px;padding:0 20px;background:var(--s0);border-bottom:1px solid var(--b0)}
+.tab{padding:10px 16px;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;user-select:none}
+.tab:hover{color:var(--t0)}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+.body{padding:16px 20px}
+.new-group-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--s0);border:1px solid var(--b0);border-radius:8px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-wrap:wrap}
+.new-group-bar label{font-size:11px;color:var(--t2);white-space:nowrap;font-weight:500}
+.new-group-bar input[type=date],.new-group-bar input[type=text]{padding:5px 10px;border-radius:5px;border:1px solid var(--b1);background:var(--s0);color:var(--t0);font-family:inherit;font-size:12px;outline:none}
+.new-group-bar input[type=date]:focus,.new-group-bar input[type=text]:focus{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-bg)}
+.new-group-bar input[type=text]{flex:1;min-width:120px;max-width:200px}
+.new-group-bar input[type=text]::placeholder{color:var(--t3)}
+.gbarcell{position:relative;flex:1;min-width:120px;max-width:200px}
+.gbarcell input{width:100%}
+.gbardd{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;background:var(--s0);border:1px solid var(--b1);border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:400;display:none;overflow:hidden;max-height:220px;overflow-y:auto}
+.group{margin-bottom:12px;border:1px solid var(--b0);border-radius:8px;overflow:visible;background:var(--s0);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ghdr{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;user-select:none;transition:background .1s;border-radius:8px 8px 0 0}
+.ghdr:hover{background:var(--s1)}
+.group.closed .ghdr{border-radius:8px}
+.gstripe{width:4px;height:16px;border-radius:2px;flex-shrink:0}
+.gchev{font-size:9px;color:var(--t3);transition:transform .18s;display:inline-block;margin-right:2px}
+.gchev.open{transform:rotate(90deg)}
+.gname{font-size:12px;font-weight:700;color:var(--t0);flex:1}
+.gpill{background:var(--s2);border:1px solid var(--b0);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--t2);font-weight:500}
+.gcaps{font-size:10px;color:var(--t2)}
+.gcaps b{color:var(--am);font-weight:700}
+.gacts{display:flex;gap:2px;margin-left:4px}
+.gact{background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--t2);padding:3px 7px;border-radius:4px;transition:all .1s;font-family:inherit}
+.gact:hover{background:var(--s2);color:var(--t0)}
+.gact.del:hover{color:var(--rd);background:var(--rd-bg)}
+.today-badge{font-size:10px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px;font-weight:600}
+.twrap{overflow-x:auto;border-top:1px solid var(--b0)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+col.c0{width:152px}col.c1{width:126px}col.c2{width:56px}col.c3{width:56px}
+col.c4{width:86px}col.c5{width:42px}col.c6{width:96px}col.c7{width:112px}
+col.c8{width:74px}col.c9{width:60px}col.c10{width:52px}col.c11{width:98px}col.c12{width:30px}
+col.da{width:130px}col.db{width:140px}col.dc{width:80px}col.dd{width:70px}col.de{width:80px}col.df{width:90px}col.dg{width:80px}col.dh{width:70px}col.di{width:150px}col.dj{width:30px}
+th{background:var(--s1);padding:6px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--t3);border-bottom:1px solid var(--b0);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--b0);transition:background .08s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover td{background:#f0f4ff}
+tbody td{height:36px;padding:0;vertical-align:middle;background:transparent}
+input.ci{width:100%;height:36px;background:transparent;border:none;padding:0 10px;font-size:12px;color:var(--t0);font-family:inherit;outline:none}
+input.ci:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--acc);border-radius:2px;position:relative;z-index:1}
+input.ci::placeholder{color:var(--t3)}
+input.ci[type=number]{text-align:center}
+.gcell{position:relative}
+input.geoI{width:100%;height:36px;background:transparent;border:none;padding:0 10px;font-size:12px;color:var(--t0);font-family:inherit;outline:none}
+input.geoI:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--acc);border-radius:2px}
+input.geoI::placeholder{color:var(--t3)}
+.geodd{position:absolute;top:calc(100% + 2px);left:0;min-width:180px;background:var(--s0);border:1px solid var(--b1);border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;display:none;overflow:hidden;max-height:220px;overflow-y:auto}
+.gopt{padding:7px 11px;font-size:12px;color:var(--t1);cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .08s}
+.gopt:hover{background:var(--acc-bg);color:var(--acc)}
+.sttd{padding:2px 6px}
+.st{height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;padding:0 8px;white-space:nowrap;transition:filter .1s;letter-spacing:.1px}
+.st:hover{filter:brightness(.94)}
+.s-sent{background:var(--gr-bg);color:#00875c;border:1px solid var(--gr-b)}
+.s-nothing{background:var(--rd-bg);color:#c0304a;border:1px solid var(--rd-b)}
+.s-done{background:var(--cy-bg);color:#0077b3;border:1px solid var(--cy-b)}
+.s-empty{background:var(--s2);color:var(--t3);border:1px solid var(--b0)}
+.aptd{padding:2px 6px}
+.ap{height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;padding:0 8px;transition:filter .1s}
+.ap:hover{filter:brightness(.94)}
+.ap-done{background:var(--cy-bg);color:#0077b3;border:1px solid var(--cy-b)}
+.ap-empty{background:var(--s2);color:var(--t3);border:1px solid var(--b0)}
+.ppltd{display:flex;align-items:center;justify-content:center;height:36px}
+.av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#0073ea,#7e5bef);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.avmt{width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--b1);cursor:pointer;transition:border-color .1s}
+.avmt:hover{border-color:var(--acc)}
+.delbtn{background:transparent;border:none;cursor:pointer;color:transparent;font-size:11px;width:30px;height:36px;display:flex;align-items:center;justify-content:center;transition:color .1s}
+tbody tr:hover .delbtn{color:var(--t3)}
+.delbtn:hover{color:var(--rd)!important}
+.addrow{display:flex;align-items:center;gap:6px;padding:7px 12px;color:var(--t3);cursor:pointer;font-size:11px;border-top:1px solid var(--b0);transition:all .1s;border-radius:0 0 8px 8px}
+.addrow:hover{background:var(--s1);color:var(--acc)}
+.addrow svg{width:11px;height:11px;flex-shrink:0}
+.footrow td{background:var(--s1);padding:5px 10px;font-size:10px;color:var(--t2);font-weight:500;border-top:1px solid var(--b0)}
+.footval{color:var(--am);font-weight:700;font-size:11px;text-align:center}
+.ctxmenu{position:fixed;background:var(--s0);border:1px solid var(--b1);border-radius:7px;overflow:hidden;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:999}
+.cxi{padding:7px 13px;font-size:12px;color:var(--t1);cursor:pointer;transition:background .08s}
+.cxi:hover{background:var(--s2)}
+.cxsep{height:1px;background:var(--b0);margin:2px 0}
+.cxi.danger{color:var(--rd)}
+.cxi.danger:hover{background:var(--rd-bg)}
+</style>
+</head>
+<body>
+<div id="lockScreen">
+  <div id="lockBox">
+    <h2>🔒 Sales CRM</h2>
+    <p>Enter password to continue</p>
+    <input id="lockPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLock()"/>
+    <button id="lockBtn" onclick="checkLock()">Enter</button>
+    <div id="lockErr"></div>
+  </div>
+</div>
+<script>
+(function(){
+  const PASS = 'Ilovemoney!@';
+  const KEY = 'crm_auth_v1';
+  if(sessionStorage.getItem(KEY)==='ok'){document.getElementById('lockScreen').style.display='none';return;}
+  window.checkLock=function(){
+    const v=document.getElementById('lockPass').value;
+    if(v===PASS){sessionStorage.setItem(KEY,'ok');document.getElementById('lockScreen').style.display='none';}
+    else{document.getElementById('lockErr').textContent='Wrong password, try again';document.getElementById('lockPass').value='';}
+  }
+})();
+</script>
+<div id="app">
+  <div class="header">
+    <div class="wordmark">Sales<span>CRM</span></div>
+    <div class="hdiv"></div>
+    <div class="hpage" id="hpage">—</div>
+    <div class="spacer"></div>
+    <div class="kpi-bar" id="kpi"></div>
+    <div class="hdiv"></div>
+    <div class="sync-dot loading" id="syncDot" title="מתחבר..."></div>
+    <button class="hbtn" id="exportBtn" onclick="doExport()">Export CSV</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tab-crm" onclick="switchTab('crm')">📋 CRM</div>
+    <div class="tab" id="tab-deals" onclick="switchTab('deals')">💰 Affiliate Deals</div>
+  </div>
+  <div class="body">
+    <div class="tab-content active" id="content-crm">
+      <div id="root-crm"></div>
+    </div>
+    <div class="tab-content" id="content-deals">
+      <div id="root-deals"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCgfjQZsHRL0_0W3yYD8byL8Srlwj8NA8k",
+  authDomain: "crm-system-259f9.firebaseapp.com",
+  projectId: "crm-system-259f9",
+  storageBucket: "crm-system-259f9.firebasestorage.app",
+  messagingSenderId: "569693056984",
+  appId: "1:569693056984:web:3a59bd53981d9f6afc4cad",
+  measurementId: "G-385SV97CH6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db_fire = getFirestore(app);
+const CRM_DOC = doc(db_fire, "crm", "main");
+const DEALS_DOC = doc(db_fire, "crm", "deals");
+
+const syncDot = document.getElementById('syncDot');
+let saveTimeout = null;
+let ignoreNextCRM = false;
+let ignoreNextDeals = false;
+let activeTab = 'crm';
+
+// ── Tab switching ──
+window.switchTab = function(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('content-'+tab).classList.add('active');
+  if(tab==='crm'){updateCRMKPI();}else{updateDealsKPI();}
+}
+
+window.doExport = function(){
+  if(activeTab==='crm') exportCRMCSV(); else exportDealsCSV();
+}
+
+// ── Sync dot ──
+function setSyncing(){syncDot.className='sync-dot loading';}
+function setSynced(){syncDot.className='sync-dot ok';}
+function setSyncErr(){syncDot.className='sync-dot err';}
+
+// ══════════════════════════════════════════
+// CRM
+// ══════════════════════════════════════════
+let crmDB = [];
+
+onSnapshot(CRM_DOC, (snap) => {
+  if(snap.exists()){
+    if(ignoreNextCRM){ignoreNextCRM=false;return;}
+    crmDB = snap.data().groups||[];
+    renderCRM();
+    setSynced();
+  } else { setSynced(); }
+}, ()=>setSyncErr());
+
+function saveCRM(){
+  if(saveTimeout) clearTimeout(saveTimeout);
+  setSyncing();
+  saveTimeout = setTimeout(async()=>{
+    try{ ignoreNextCRM=true; await setDoc(CRM_DOC,{groups:crmDB}); setSynced(); }
+    catch(e){ setSyncErr(); }
+  },600);
+}
+
+const GEOS_CRM=[
+  {n:'Afghanistan',f:'🇦🇫'},{n:'Albania',f:'🇦🇱'},{n:'Algeria',f:'🇩🇿'},{n:'Argentina',f:'🇦🇷'},
+  {n:'Australia',f:'🇦🇺'},{n:'Austria',f:'🇦🇹'},{n:'Azerbaijan',f:'🇦🇿'},{n:'Bahrain',f:'🇧🇭'},
+  {n:'Bangladesh',f:'🇧🇩'},{n:'Belarus',f:'🇧🇾'},{n:'Belgium',f:'🇧🇪'},{n:'Bolivia',f:'🇧🇴'},
+  {n:'Bosnia',f:'🇧🇦'},{n:'Brazil',f:'🇧🇷'},{n:'Bulgaria',f:'🇧🇬'},{n:'Cambodia',f:'🇰🇭'},
+  {n:'Canada',f:'🇨🇦'},{n:'Chile',f:'🇨🇱'},{n:'China',f:'🇨🇳'},{n:'Colombia',f:'🇨🇴'},
+  {n:'Croatia',f:'🇭🇷'},{n:'Cyprus',f:'🇨🇾'},{n:'Czech Republic',f:'🇨🇿'},{n:'Denmark',f:'🇩🇰'},
+  {n:'Ecuador',f:'🇪🇨'},{n:'Egypt',f:'🇪🇬'},{n:'Estonia',f:'🇪🇪'},{n:'Finland',f:'🇫🇮'},
+  {n:'France',f:'🇫🇷'},{n:'Georgia',f:'🇬🇪'},{n:'Germany',f:'🇩🇪'},{n:'Ghana',f:'🇬🇭'},
+  {n:'Greece',f:'🇬🇷'},{n:'Hungary',f:'🇭🇺'},{n:'India',f:'🇮🇳'},{n:'Indonesia',f:'🇮🇩'},
+  {n:'Iran',f:'🇮🇷'},{n:'Iraq',f:'🇮🇶'},{n:'Ireland',f:'🇮🇪'},{n:'Israel',f:'🇮🇱'},
+  {n:'Italy',f:'🇮🇹'},{n:'Japan',f:'🇯🇵'},{n:'Jordan',f:'🇯🇴'},{n:'Kazakhstan',f:'🇰🇿'},
+  {n:'Kenya',f:'🇰🇪'},{n:'Kuwait',f:'🇰🇼'},{n:'Latvia',f:'🇱🇻'},{n:'Lebanon',f:'🇱🇧'},
+  {n:'Lithuania',f:'🇱🇹'},{n:'Luxembourg',f:'🇱🇺'},{n:'Malaysia',f:'🇲🇾'},{n:'Mexico',f:'🇲🇽'},
+  {n:'Moldova',f:'🇲🇩'},{n:'Morocco',f:'🇲🇦'},{n:'Netherlands',f:'🇳🇱'},{n:'New Zealand',f:'🇳🇿'},
+  {n:'Nigeria',f:'🇳🇬'},{n:'Norway',f:'🇳🇴'},{n:'Oman',f:'🇴🇲'},{n:'Pakistan',f:'🇵🇰'},
+  {n:'Peru',f:'🇵🇪'},{n:'Philippines',f:'🇵🇭'},{n:'Poland',f:'🇵🇱'},{n:'Portugal',f:'🇵🇹'},
+  {n:'Qatar',f:'🇶🇦'},{n:'Romania',f:'🇷🇴'},{n:'Russia',f:'🇷🇺'},{n:'Saudi Arabia',f:'🇸🇦'},
+  {n:'Serbia',f:'🇷🇸'},{n:'Singapore',f:'🇸🇬'},{n:'Slovakia',f:'🇸🇰'},{n:'Slovenia',f:'🇸🇮'},
+  {n:'South Africa',f:'🇿🇦'},{n:'South Korea',f:'🇰🇷'},{n:'Spain',f:'🇪🇸'},{n:'Sweden',f:'🇸🇪'},
+  {n:'Switzerland',f:'🇨🇭'},{n:'Taiwan',f:'🇹🇼'},{n:'Thailand',f:'🇹🇭'},{n:'Tunisia',f:'🇹🇳'},
+  {n:'Turkey',f:'🇹🇷'},{n:'UAE',f:'🇦🇪'},{n:'UK',f:'🇬🇧'},{n:'Ukraine',f:'🇺🇦'},
+  {n:'USA',f:'🇺🇸'},{n:'Uzbekistan',f:'🇺🇿'},{n:'Venezuela',f:'🇻🇪'},{n:'Vietnam',f:'🇻🇳'},
+  {n:'Yemen',f:'🇾🇪'},{n:'Zimbabwe',f:'🇿🇼'}
+];
+const COLORS=['#0073ea','#00c875','#f5a623','#e44258','#0099df','#7e5bef','#ff7575','#00b8d4'];
+const STC=['','order sent','Nothing in','Done'];
+function uid(){return Math.random().toString(36).slice(2,8)}
+function newCRMRow(){return{id:uid(),item:'',geos:'',caps:'',src:'',wh:'',fit:'',deal:'',status:'',req:'',pri:'',ppl:'',appr:''}}
+function todayStr(){const d=new Date();return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getFullYear()).slice(2)}
+function dateInputVal(){return new Date().toISOString().slice(0,10)}
+function formatDateLabel(iso){if(!iso)return'';if(iso.match(/^\d{4}-\d{2}-\d{2}$/)){const[y,m,d]=iso.split('-');return d+'.'+m+'.'+y.slice(2)}return iso}
+function isToday(label){return label===todayStr()||label.endsWith('— '+todayStr())}
+function xe(v){return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function xa(v){return String(v||'').replace(/"/g,'&quot;')}
+function geoDisp(raw,list){if(!raw)return'';const g=list.find(x=>x.n.toLowerCase()===raw.toLowerCase());return g?g.f+' '+raw:raw}
+function stCls(s){if(s==='order sent')return's-sent';if(s==='Nothing in')return's-nothing';if(s==='Done')return's-done';return's-empty'}
+
+function updateCRMKPI(){
+  const total=crmDB.reduce((a,g)=>a+g.rows.length,0);
+  const sent=crmDB.reduce((a,g)=>a+g.rows.filter(r=>r.status==='order sent').length,0);
+  const done=crmDB.reduce((a,g)=>a+g.rows.filter(r=>r.status==='Done').length,0);
+  const caps=crmDB.reduce((a,g)=>a+g.rows.reduce((b,r)=>b+(parseInt(r.caps)||0),0),0);
+  const pg=document.getElementById('hpage');if(pg)pg.textContent=crmDB.length+' groups';
+  const kpi=document.getElementById('kpi');
+  if(kpi)kpi.innerHTML=`<div class="kchip"><b>${total}</b>rows</div><div class="kchip"><b>${sent}</b>sent</div><div class="kchip"><b>${done}</b>done</div>`+(caps?`<div class="kchip"><b>${caps}</b>caps</div>`:'');
+}
+
+function renderCRM(){
+  const root=document.getElementById('root-crm');root.innerHTML='';
+  const bar=document.createElement('div');bar.className='new-group-bar';
+  bar.innerHTML=`<label>+ קבוצה חדשה:</label>
+    <input type="date" id="new-date" value="${dateInputVal()}"/>
+    <div class="gbarcell">
+      <input type="text" id="new-label" placeholder="מדינה / שם קבוצה" autocomplete="off"
+        oninput="crmBarGeoInput(this.value)"
+        onfocus="crmBarGeoInput(this.value)"
+        onblur="setTimeout(()=>{const d=document.getElementById('crm-bar-dd');if(d)d.style.display='none'},160)"/>
+      <div class="gbardd" id="crm-bar-dd"></div>
+    </div>
+    <button class="hbtn acc" onclick="crmAddGroupFromBar()">צור קבוצה</button>`;
+  root.appendChild(bar);
+  crmDB.forEach((_,gi)=>{const d=document.createElement('div');d.className='group';d.id='cg'+gi;root.appendChild(d);crmRG(gi)});
+  updateCRMKPI();
+}
+
+function crmRG(gi){
+  const g=crmDB[gi];const el=document.getElementById('cg'+gi);if(!el)return;
+  const caps=g.rows.reduce((a,r)=>a+(parseInt(r.caps)||0),0);
+  el.className='group'+(g.open?'':' closed');
+  const today=isToday(g.name);
+  let h=`<div class="ghdr" onclick="crmToggle(${gi})">
+    <span class="gchev ${g.open?'open':''}">▶</span>
+    <span class="gstripe" style="background:${g.color}"></span>
+    <span class="gname">${xe(g.name)}</span>
+    ${today?'<span class="today-badge">Today</span>':''}
+    <span class="gpill">${g.rows.length}</span>
+    ${caps?`<span class="gcaps">caps <b>${caps}</b></span>`:''}
+    <div class="gacts" onclick="event.stopPropagation()">
+      <button class="gact" onclick="crmAddRow(${gi})">+ item</button>
+      <button class="gact del" onclick="crmDelGroup(${gi})">Delete</button>
+    </div>
+  </div>`;
+  if(g.open){
+    h+=`<div class="twrap"><table>
+      <colgroup><col class="c0"><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"><col class="c8"><col class="c9"><col class="c10"><col class="c11"><col class="c12"></colgroup>
+      <thead><tr><th>Item</th><th>Geos</th><th>Caps</th><th>Source</th><th>Hrs</th><th>Fit</th><th>Deal</th><th>Status</th><th>Requests</th><th>Priority</th><th>Ppl</th><th>Approve</th><th></th></tr></thead>
+      <tbody id="ctb${gi}">`;
+    g.rows.forEach((r,ri)=>{h+=crmRowH(gi,ri,r)});
+    h+=`</tbody><tfoot><tr class="footrow"><td>Total</td><td></td><td class="footval">${caps||''}</td><td colspan="10"></td></tr></tfoot></table></div>
+    <div class="addrow" onclick="crmAddRow(${gi})"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>Add item</div>`;
+  }
+  el.innerHTML=h;
+}
+
+function crmRowH(gi,ri,r){
+  const gd=geoDisp(r.geos,GEOS_CRM);const sc=stCls(r.status);const ac=r.appr==='Done'?'ap-done':'ap-empty';
+  return`<tr oncontextmenu="crmShowCtx(event,${gi},${ri})">
+    <td><input class="ci" value="${xa(r.item)}" oninput="crmUpd(${gi},${ri},'item',this.value)" placeholder="Item name" onkeydown="crmNav(event,${gi},${ri},0)"/></td>
+    <td class="gcell"><input class="geoI" id="cgi${gi}_${ri}" value="${xa(gd)}" oninput="crmOnGI(event,${gi},${ri})" onfocus="crmOpenDD(${gi},${ri})" onblur="crmCloseDD(${gi},${ri})" placeholder="Country" onkeydown="crmNav(event,${gi},${ri},1)"/><div class="geodd" id="cdd${gi}_${ri}"></div></td>
+    <td><input class="ci" value="${xa(r.caps)}" oninput="crmUpd(${gi},${ri},'caps',this.value)" type="number" placeholder="—" onkeydown="crmNav(event,${gi},${ri},2)"/></td>
+    <td><input class="ci" value="${xa(r.src)}" oninput="crmUpd(${gi},${ri},'src',this.value)" type="number" placeholder="—" onkeydown="crmNav(event,${gi},${ri},3)"/></td>
+    <td><input class="ci" value="${xa(r.wh)}" oninput="crmUpd(${gi},${ri},'wh',this.value)" placeholder="10-18" onkeydown="crmNav(event,${gi},${ri},4)"/></td>
+    <td><input class="ci" value="${xa(r.fit)}" oninput="crmUpd(${gi},${ri},'fit',this.value)" onkeydown="crmNav(event,${gi},${ri},5)"/></td>
+    <td><input class="ci" value="${xa(r.deal)}" oninput="crmUpd(${gi},${ri},'deal',this.value)" placeholder="1300-11" onkeydown="crmNav(event,${gi},${ri},6)"/></td>
+    <td class="sttd"><div class="st ${sc}" onclick="crmCycleStatus(${gi},${ri})">${r.status||'—'}</div></td>
+    <td><input class="ci" value="${xa(r.req)}" oninput="crmUpd(${gi},${ri},'req',this.value)" onkeydown="crmNav(event,${gi},${ri},8)"/></td>
+    <td><input class="ci" value="${xa(r.pri)}" oninput="crmUpd(${gi},${ri},'pri',this.value)" onkeydown="crmNav(event,${gi},${ri},9)"/></td>
+    <td class="ppltd">${r.ppl?`<div class="av" onclick="crmEditPpl(${gi},${ri})">${r.ppl.slice(0,2).toUpperCase()}</div>`:`<div class="avmt" onclick="crmEditPpl(${gi},${ri})"></div>`}</td>
+    <td class="aptd"><div class="ap ${ac}" onclick="crmCycleAppr(${gi},${ri})">${r.appr||'—'}</div></td>
+    <td><button class="delbtn" onclick="crmDelRow(${gi},${ri})">✕</button></td>
+  </tr>`;
+}
+
+const CIC=[0,1,2,3,4,5,6,8,9];
+window.crmNav=function(e,gi,ri,col){
+  if(e.key==='Tab'){e.preventDefault();const ci=CIC.indexOf(col),nx=CIC[ci+1];nx!=null?crmFocusCell(gi,ri,nx):ri<crmDB[gi].rows.length-1?crmFocusCell(gi,ri+1,0):crmAddRow(gi,true)}
+  if(e.key==='Enter'){ri<crmDB[gi].rows.length-1?crmFocusCell(gi,ri+1,col):crmAddRow(gi,true)}
+  if(e.key==='ArrowDown'&&ri<crmDB[gi].rows.length-1){e.preventDefault();crmFocusCell(gi,ri+1,col)}
+  if(e.key==='ArrowUp'&&ri>0){e.preventDefault();crmFocusCell(gi,ri-1,col)}
+  if(e.key==='Escape')e.target.blur()
+}
+function crmFocusCell(gi,ri,col){const idx=CIC.indexOf(col)>=0?CIC.indexOf(col):0;setTimeout(()=>{const rows=document.querySelectorAll('#ctb'+gi+' tr');if(rows[ri]){const ins=rows[ri].querySelectorAll('input');if(ins[idx])ins[idx].focus()}},20)}
+window.crmAddGroupFromBar=function(){
+  const dateEl=document.getElementById('new-date');const labelEl=document.getElementById('new-label');
+  if(!dateEl||!dateEl.value)return;
+  const label=labelEl&&labelEl.value.trim();
+  const name=label?label+' — '+formatDateLabel(dateEl.value):formatDateLabel(dateEl.value);
+  if(crmDB.find(g=>g.name===name)){alert('קבוצה עם שם זה כבר קיימת');return}
+  crmDB.unshift({id:uid(),name,color:COLORS[crmDB.length%COLORS.length],open:true,rows:[]});
+  saveCRM();renderCRM();
+}
+window.crmAddRow=function(gi,focusIt){
+  crmDB[gi].rows.push(newCRMRow());saveCRM();crmRG(gi);updateCRMKPI();
+  if(focusIt!==false)setTimeout(()=>{const rows=document.querySelectorAll('#ctb'+gi+' tr');const last=rows[rows.length-1];if(last){const i=last.querySelector('input');if(i)i.focus()}},40)
+}
+window.crmDelRow=function(gi,ri){crmDB[gi].rows.splice(ri,1);saveCRM();crmRG(gi);updateCRMKPI()}
+window.crmToggle=function(gi){crmDB[gi].open=!crmDB[gi].open;saveCRM();crmRG(gi)}
+window.crmDelGroup=function(gi){if(crmDB[gi].rows.length&&!confirm('Delete "'+crmDB[gi].name+'"?'))return;crmDB.splice(gi,1);saveCRM();renderCRM()}
+window.crmEditPpl=function(gi,ri){const v=prompt('Initials:',crmDB[gi].rows[ri].ppl||'');if(v===null)return;crmDB[gi].rows[ri].ppl=v.trim().slice(0,2);saveCRM();crmRG(gi)}
+window.crmUpd=function(gi,ri,f,v){crmDB[gi].rows[ri][f]=v;saveCRM();if(f==='caps')updateCRMKPI()}
+window.crmCycleStatus=function(gi,ri){const r=crmDB[gi].rows[ri];r.status=STC[(STC.indexOf(r.status)+1)%STC.length];saveCRM();crmRG(gi);updateCRMKPI()}
+window.crmCycleAppr=function(gi,ri){const r=crmDB[gi].rows[ri];r.appr=r.appr==='Done'?'':'Done';saveCRM();crmRG(gi)}
+window.crmOnGI=function(e,gi,ri){
+  const v=e.target.value;const raw=v.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*/,'').trim();
+  crmDB[gi].rows[ri].geos=raw;saveCRM();
+  const dd=document.getElementById('cdd'+gi+'_'+ri);if(!dd)return;
+  const q=raw.toLowerCase();const m=q?GEOS_CRM.filter(g=>g.n.toLowerCase().includes(q)):GEOS_CRM;
+  dd.innerHTML=m.slice(0,10).map(g=>`<div class="gopt" onmousedown="crmPickGeo(event,${gi},${ri},'${g.n}')">${g.f} ${g.n}</div>`).join('');
+  dd.style.display=m.length?'block':'none'
+}
+window.crmOpenDD=function(gi,ri){const dd=document.getElementById('cdd'+gi+'_'+ri);if(!dd)return;dd.innerHTML=GEOS_CRM.map(g=>`<div class="gopt" onmousedown="crmPickGeo(event,${gi},${ri},'${g.n}')">${g.f} ${g.n}</div>`).join('');dd.style.display='block'}
+window.crmCloseDD=function(gi,ri){setTimeout(()=>{const d=document.getElementById('cdd'+gi+'_'+ri);if(d)d.style.display='none'},160)}
+window.crmPickGeo=function(ev,gi,ri,name){ev.preventDefault();const g=GEOS_CRM.find(x=>x.n===name);const inp=document.getElementById('cgi'+gi+'_'+ri);if(inp)inp.value=(g?g.f+' ':'')+name;crmDB[gi].rows[ri].geos=name;saveCRM();const dd=document.getElementById('cdd'+gi+'_'+ri);if(dd)dd.style.display='none'}
+window.crmShowCtx=function(e,gi,ri){
+  e.preventDefault();closeCtx();
+  const m=document.createElement('div');m.className='ctxmenu';m.id='ctx';m.style.cssText='top:'+e.clientY+'px;left:'+e.clientX+'px';
+  m.innerHTML=`<div class="cxi" onmousedown="crmInsertAt(${gi},${ri});closeCtx()">Insert above</div><div class="cxi" onmousedown="crmInsertAt(${gi},${ri+1});closeCtx()">Insert below</div><div class="cxi" onmousedown="crmDupRow(${gi},${ri});closeCtx()">Duplicate</div><div class="cxsep"></div><div class="cxi danger" onmousedown="crmDelRow(${gi},${ri});closeCtx()">Delete row</div>`;
+  document.body.appendChild(m);setTimeout(()=>document.addEventListener('click',closeCtx,{once:true}),10)
+}
+window.crmInsertAt=function(gi,ri){crmDB[gi].rows.splice(ri,0,newCRMRow());saveCRM();crmRG(gi);updateCRMKPI()}
+window.crmDupRow=function(gi,ri){crmDB[gi].rows.splice(ri+1,0,{...crmDB[gi].rows[ri],id:uid()});saveCRM();crmRG(gi);updateCRMKPI()}
+function exportCRMCSV(){
+  const cols=['item','geos','caps','src','wh','fit','deal','status','req','pri','ppl','appr'];
+  let csv='Group,Item,Geos,Caps,Source,Working Hours,Fit,Deal,Status,Requests,Priority,People,Approve\n';
+  crmDB.forEach(g=>g.rows.forEach(r=>{csv+='"'+g.name+'",'+cols.map(c=>'"'+(r[c]||'')+'"').join(',')+'\n'}));
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='crm.csv';a.click()
+}
+
+// ══════════════════════════════════════════
+// DEALS
+// ══════════════════════════════════════════
+let dealsDB = [];
+
+onSnapshot(DEALS_DOC, (snap) => {
+  if(snap.exists()){
+    if(ignoreNextDeals){ignoreNextDeals=false;return;}
+    dealsDB = snap.data().groups||[];
+    renderDeals();
+    setSynced();
+  } else { setSynced(); }
+}, ()=>setSyncErr());
+
+function saveDeals(){
+  if(saveTimeout) clearTimeout(saveTimeout);
+  setSyncing();
+  saveTimeout = setTimeout(async()=>{
+    try{ ignoreNextDeals=true; await setDoc(DEALS_DOC,{groups:dealsDB}); setSynced(); }
+    catch(e){ setSyncErr(); }
+  },600);
+}
+
+function newDealsRow(){return{id:uid(),item:'',country:'',price:'',crg:'',source:'',language:'',taken:'',rank:'',funnels:''}}
+
+function updateDealsKPI(){
+  const total=dealsDB.reduce((a,g)=>a+g.rows.length,0);
+  const groups=dealsDB.length;
+  const pg=document.getElementById('hpage');if(pg)pg.textContent=groups+' groups';
+  const kpi=document.getElementById('kpi');
+  if(kpi)kpi.innerHTML=`<div class="kchip"><b>${groups}</b>groups</div><div class="kchip"><b>${total}</b>deals</div>`;
+}
+
+function renderDeals(){
+  const root=document.getElementById('root-deals');root.innerHTML='';
+  const bar=document.createElement('div');bar.className='new-group-bar';
+  bar.innerHTML=`<label>+ קבוצה חדשה:</label>
+    <div class="gbarcell">
+      <input type="text" id="deals-new-label" placeholder="מדינה / שם קבוצה" autocomplete="off"
+        oninput="dealsBarGeoInput(this.value)"
+        onfocus="dealsBarGeoInput(this.value)"
+        onblur="setTimeout(()=>{const d=document.getElementById('deals-bar-dd');if(d)d.style.display='none'},160)"/>
+      <div class="gbardd" id="deals-bar-dd"></div>
+    </div>
+    <button class="hbtn acc" onclick="dealsAddGroupFromBar()">צור קבוצה</button>`;
+  root.appendChild(bar);
+  dealsDB.forEach((_,gi)=>{const d=document.createElement('div');d.className='group';d.id='dg'+gi;root.appendChild(d);dealsRG(gi)});
+  updateDealsKPI();
+}
+
+function dealsRG(gi){
+  const g=dealsDB[gi];const el=document.getElementById('dg'+gi);if(!el)return;
+  el.className='group'+(g.open?'':' closed');
+  const geo=GEOS_CRM.find(x=>x.n.toLowerCase()===g.name.toLowerCase());
+  const flag=geo?geo.f+' ':'';
+  const totalPrice=g.rows.reduce((a,r)=>a+(parseInt(r.price)||0),0);
+  let h=`<div class="ghdr" onclick="dealsToggle(${gi})">
+    <span class="gchev ${g.open?'open':''}">▶</span>
+    <span class="gstripe" style="background:${g.color}"></span>
+    <span class="gname">${flag}${xe(g.name)}</span>
+    <span class="gpill">${g.rows.length}</span>
+    <div class="gacts" onclick="event.stopPropagation()">
+      <button class="gact" onclick="dealsAddRow(${gi})">+ item</button>
+      <button class="gact del" onclick="dealsDelGroup(${gi})">Delete</button>
+    </div>
+  </div>`;
+  if(g.open){
+    h+=`<div class="twrap"><table>
+      <colgroup><col class="da"><col class="db"><col class="dc"><col class="dd"><col class="de"><col class="df"><col class="dg"><col class="dh"><col class="di"><col class="dj"></colgroup>
+      <thead><tr><th>Item</th><th>Country</th><th>Price</th><th>CRG</th><th>Source</th><th>Language</th><th>Taken</th><th>Rank</th><th>Funnels</th><th></th></tr></thead>
+      <tbody id="dtb${gi}">`;
+    g.rows.forEach((r,ri)=>{h+=dealsRowH(gi,ri,r)});
+    h+=`</tbody><tfoot><tr class="footrow"><td>Total</td><td></td><td class="footval">${totalPrice||''}</td><td colspan="7"></td></tr></tfoot></table></div>
+    <div class="addrow" onclick="dealsAddRow(${gi})"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>Add item</div>`;
+  }
+  el.innerHTML=h;
+}
+
+function dealsRowH(gi,ri,r){
+  const gd=geoDisp(r.country,GEOS_CRM);
+  return`<tr oncontextmenu="dealsShowCtx(event,${gi},${ri})">
+    <td><input class="ci" value="${xa(r.item)}" oninput="dealsUpd(${gi},${ri},'item',this.value)" placeholder="Deal name"/></td>
+    <td class="gcell"><input class="geoI" id="dgi${gi}_${ri}" value="${xa(gd)}" oninput="dealsOnGI(event,${gi},${ri})" onfocus="dealsOpenDD(${gi},${ri})" onblur="dealsCloseDD(${gi},${ri})" placeholder="Country"/><div class="geodd" id="ddd${gi}_${ri}"></div></td>
+    <td><input class="ci" value="${xa(r.price)}" oninput="dealsUpd(${gi},${ri},'price',this.value)" type="number" placeholder="—"/></td>
+    <td><input class="ci" value="${xa(r.crg)}" oninput="dealsUpd(${gi},${ri},'crg',this.value)" placeholder="12%"/></td>
+    <td><input class="ci" value="${xa(r.source)}" oninput="dealsUpd(${gi},${ri},'source',this.value)" placeholder="—"/></td>
+    <td><input class="ci" value="${xa(r.language)}" oninput="dealsUpd(${gi},${ri},'language',this.value)" placeholder="Native"/></td>
+    <td><input class="ci" value="${xa(r.taken)}" oninput="dealsUpd(${gi},${ri},'taken',this.value)" placeholder="—"/></td>
+    <td><input class="ci" value="${xa(r.rank)}" oninput="dealsUpd(${gi},${ri},'rank',this.value)" placeholder="—"/></td>
+    <td><input class="ci" value="${xa(r.funnels)}" oninput="dealsUpd(${gi},${ri},'funnels',this.value)" placeholder="—"/></td>
+    <td><button class="delbtn" onclick="dealsDelRow(${gi},${ri})">✕</button></td>
+  </tr>`;
+}
+
+window.dealsUpd=function(gi,ri,f,v){dealsDB[gi].rows[ri][f]=v;saveDeals();if(f==='price')updateDealsKPI()}
+window.dealsAddRow=function(gi,focusIt){
+  dealsDB[gi].rows.push(newDealsRow());saveDeals();dealsRG(gi);updateDealsKPI();
+  if(focusIt!==false)setTimeout(()=>{const rows=document.querySelectorAll('#dtb'+gi+' tr');const last=rows[rows.length-1];if(last){const i=last.querySelector('input');if(i)i.focus()}},40)
+}
+window.dealsDelRow=function(gi,ri){dealsDB[gi].rows.splice(ri,1);saveDeals();dealsRG(gi);updateDealsKPI()}
+window.dealsToggle=function(gi){dealsDB[gi].open=!dealsDB[gi].open;saveDeals();dealsRG(gi)}
+window.dealsDelGroup=function(gi){if(dealsDB[gi].rows.length&&!confirm('Delete "'+dealsDB[gi].name+'"?'))return;dealsDB.splice(gi,1);saveDeals();renderDeals()}
+window.dealsAddGroupFromBar=function(){
+  const labelEl=document.getElementById('deals-new-label');
+  const name=labelEl&&labelEl.value.trim();
+  if(!name)return;
+  if(dealsDB.find(g=>g.name===name)){alert('קבוצה עם שם זה כבר קיימת');return}
+  dealsDB.unshift({id:uid(),name,color:COLORS[dealsDB.length%COLORS.length],open:true,rows:[]});
+  saveDeals();renderDeals();
+  if(labelEl)labelEl.value='';
+}
+window.dealsOnGI=function(e,gi,ri){
+  const v=e.target.value;const raw=v.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\s*/,'').trim();
+  dealsDB[gi].rows[ri].country=raw;saveDeals();
+  const dd=document.getElementById('ddd'+gi+'_'+ri);if(!dd)return;
+  const q=raw.toLowerCase();const m=q?GEOS_CRM.filter(g=>g.n.toLowerCase().includes(q)):GEOS_CRM;
+  dd.innerHTML=m.slice(0,10).map(g=>`<div class="gopt" onmousedown="dealsPickGeo(event,${gi},${ri},'${g.n}')">${g.f} ${g.n}</div>`).join('');
+  dd.style.display=m.length?'block':'none'
+}
+window.dealsOpenDD=function(gi,ri){const dd=document.getElementById('ddd'+gi+'_'+ri);if(!dd)return;dd.innerHTML=GEOS_CRM.map(g=>`<div class="gopt" onmousedown="dealsPickGeo(event,${gi},${ri},'${g.n}')">${g.f} ${g.n}</div>`).join('');dd.style.display='block'}
+window.dealsCloseDD=function(gi,ri){setTimeout(()=>{const d=document.getElementById('ddd'+gi+'_'+ri);if(d)d.style.display='none'},160)}
+window.dealsPickGeo=function(ev,gi,ri,name){ev.preventDefault();const g=GEOS_CRM.find(x=>x.n===name);const inp=document.getElementById('dgi'+gi+'_'+ri);if(inp)inp.value=(g?g.f+' ':'')+name;dealsDB[gi].rows[ri].country=name;saveDeals();const dd=document.getElementById('ddd'+gi+'_'+ri);if(dd)dd.style.display='none'}
+window.dealsShowCtx=function(e,gi,ri){
+  e.preventDefault();closeCtx();
+  const m=document.createElement('div');m.className='ctxmenu';m.id='ctx';m.style.cssText='top:'+e.clientY+'px;left:'+e.clientX+'px';
+  m.innerHTML=`<div class="cxi" onmousedown="dealsInsertAt(${gi},${ri});closeCtx()">Insert above</div><div class="cxi" onmousedown="dealsInsertAt(${gi},${ri+1});closeCtx()">Insert below</div><div class="cxi" onmousedown="dealsDupRow(${gi},${ri});closeCtx()">Duplicate</div><div class="cxsep"></div><div class="cxi danger" onmousedown="dealsDelRow(${gi},${ri});closeCtx()">Delete row</div>`;
+  document.body.appendChild(m);setTimeout(()=>document.addEventListener('click',closeCtx,{once:true}),10)
+}
+window.dealsInsertAt=function(gi,ri){dealsDB[gi].rows.splice(ri,0,newDealsRow());saveDeals();dealsRG(gi);updateDealsKPI()}
+window.dealsDupRow=function(gi,ri){dealsDB[gi].rows.splice(ri+1,0,{...dealsDB[gi].rows[ri],id:uid()});saveDeals();dealsRG(gi);updateDealsKPI()}
+function exportDealsCSV(){
+  const cols=['item','country','price','crg','source','language','taken','rank','funnels'];
+  let csv='Group,Item,Country,Price,CRG,Source,Language,Taken,Rank,Funnels\n';
+  dealsDB.forEach(g=>g.rows.forEach(r=>{csv+='"'+g.name+'",'+cols.map(c=>'"'+(r[c]||'')+'"').join(',')+'\n'}));
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='deals.csv';a.click()
+}
+
+window.crmBarGeoInput=function(val){
+  const dd=document.getElementById('crm-bar-dd');if(!dd)return;
+  const q=val.toLowerCase();
+  const m=q?GEOS_CRM.filter(g=>g.n.toLowerCase().includes(q)):GEOS_CRM;
+  dd.innerHTML=m.slice(0,10).map(g=>`<div class="gopt" onmousedown="crmBarPickGeo('${g.n}','${g.f}')">${g.f} ${g.n}</div>`).join('');
+  dd.style.display=m.length?'block':'none';
+}
+window.crmBarPickGeo=function(name,flag){
+  const inp=document.getElementById('new-label');if(inp){inp.value=flag+' '+name;}
+  const dd=document.getElementById('crm-bar-dd');if(dd)dd.style.display='none';
+}
+window.dealsBarGeoInput=function(val){
+  const dd=document.getElementById('deals-bar-dd');if(!dd)return;
+  const q=val.toLowerCase();
+  const m=q?GEOS_CRM.filter(g=>g.n.toLowerCase().includes(q)):GEOS_CRM;
+  dd.innerHTML=m.slice(0,10).map(g=>`<div class="gopt" onmousedown="dealsBarPickGeo('${g.n}','${g.f}')">${g.f} ${g.n}</div>`).join('');
+  dd.style.display=m.length?'block':'none';
+}
+window.dealsBarPickGeo=function(name,flag){
+  const inp=document.getElementById('deals-new-label');if(inp){inp.value=flag+' '+name;}
+  const dd=document.getElementById('deals-bar-dd');if(dd)dd.style.display='none';
+}
+
+window.closeCtx=function(){const m=document.getElementById('ctx');if(m)m.remove()}
+
+renderCRM();
+</script>
+</body>
+</html>
